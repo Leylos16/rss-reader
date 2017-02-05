@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <title>RSS Reader</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    </head>
+    <body>
+        <div class="container">
+            <div class="page-header">
+                <h1>RSS Reader</h1>
+            </div>
+            <?php if(isset($params['error'])) :  ?>
+                <div class="alert alert-danger">
+                    Cet identifiant est déjà utilisé.
+                </div>
+            <?php endif ; ?>
+            <form method='post'><?php  ?>
+                <div class="form-group">
+                  <label for="username">Identifiant</label>
+                  <input type="text" required class="form-control" name="username" id="username" placeholder="Identifiant">
+                </div>
+                <div class="form-group">
+                  <label for="password">Mot de passe</label>
+                  <input type="password" required class="form-control" name="password" id="password" placeholder="Mot de passe">
+                </div>
+                <button type="submit" class="btn btn-default">S'inscrire ou se connecter</button>
+          </form>
+        </div>
+    </body>
+</html>

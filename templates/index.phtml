@@ -3,28 +3,60 @@
     <head>
         <meta charset="utf-8"/>
         <title>RSS Reader</title>
-        <style>
-            body {
-                margin: 50px 0 0 0;
-                padding: 0;
-                width: 100%;
-                font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-                text-align: center;
-                color: #aaa;
-                font-size: 18px;
-            }
-
-            h1 {
-                color: #719e40;
-                letter-spacing: -3px;
-                font-family: 'Lato', sans-serif;
-                font-size: 50px;
-                font-weight: 200;
-                margin-bottom: 0;
-            }
-        </style>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     </head>
     <body>
-        <h1>RSS Reader</h1>
+        <div class="container">
+            <button class="btn btn-default" data-toggle="modal">Ajouter un flux RSS</button>
+            <div class="page-header">
+                <h1>RSS Reader</h1>
+            </div>
+            <?php if(isset($params['error'])) :  ?>
+                <div class="alert alert-danger">
+                    Une erreur est survenue.
+                </div>
+            <?php else : ?>
+                <?php if (!empty($params['messages'])) : ?>
+                    <?php foreach ($params['messages'] as $type => $message) : ?>
+                        <div class="alert alert-<?php echo $type ?>">
+                            <?php echo $message[0] ?>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+                <form method="post" class="form-inline pull-left" action="/feed">
+                    <div class="form-group">
+                      <label for="url">Url</label>
+                      <input type="url" class="form-control" name="url" id="url">
+                    </div>
+                    <div class="form-group">
+                      <label for="categories">Catégorie</label>
+                      <select class="form-control" name="category_id">
+                          <option value="0">Sans catégorie</option>
+                          <?php foreach ($params['categories'] as $category) : ?>
+                            <option value="<?php echo $category['id'] ?>"><?php echo $category['label'] ?></option>
+                          <?php endforeach; ?>
+                      </select>
+                    </div>
+                    <button type="submit" class="btn btn-default">Ajouter</button>
+                </form>
+                <a href="/logout" class="btn btn-primary pull-right">Déconnexion</a>
+                <div class="clearfix"></div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="list-group">
+                            <a href="#" class="list-group-item active">
+                              Sans catégorie
+                            </a>
+                            <?php foreach ($params['feeds'] as $feed) : ?>
+                                <a href="#" class="list-group-item"><?php echo $feed['title'] ?></a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>        
+        <script>
+        
+        </script>
     </body>
 </html>

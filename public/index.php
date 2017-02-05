@@ -23,8 +23,18 @@ require __DIR__ . '/../src/dependencies.php';
 // Register middleware
 require __DIR__ . '/../src/middleware.php';
 
+
 // Register routes
-require __DIR__ . '/../src/routes.php';
+$routeFiles = (array) glob(__DIR__ . '/../src/routes/*.php');
+foreach($routeFiles as $routeFile) {
+    require_once $routeFile;
+}
+
+// Register controllers
+$controllerFiles = (array) glob(__DIR__ . '/../src/controllers/*.php');
+foreach($controllerFiles as $controllerFile) {
+    require_once $controllerFile;
+}
 
 // Run app
 $app->run();
