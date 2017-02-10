@@ -10,10 +10,12 @@
             <div class="page-header">
                 <h1>RSS Reader</h1>
             </div>
-            <?php if(isset($params['error'])) :  ?>
-                <div class="alert alert-danger">
-                    Cet identifiant est déjà utilisé.
-                </div>
+            <?php if(isset($params['error']) && $params['error'] === 0) :  ?>
+                <div class="alert alert-danger">Une erreur est survenue.</div>
+            <?php elseif(isset($params['error']) && $params['error'] === 1) : ?>
+                <div class="alert alert-danger">Cet identifiant est déjà utilisé.</div>
+            <?php elseif(isset($params['error']) && $params['error'] === 2) : ?>
+                <div class="alert alert-danger">Veuillez renseignez un nom d'utilisateur et un mot de passe.</div>
             <?php endif ; ?>
             <form method='post'><?php  ?>
                 <div class="form-group">
@@ -25,7 +27,7 @@
                   <input type="password" required class="form-control" name="password" id="password" placeholder="Mot de passe">
                 </div>
                 <button type="submit" class="btn btn-default">S'inscrire ou se connecter</button>
-          </form>
+            </form>
         </div>
     </body>
 </html>

@@ -28,13 +28,3 @@ $container['db'] = function ($container) {
 
     return $capsule;
 };
-
-$container['flash'] = function() {
-  return new \Slim\Flash\Messages();
-};
-//UserController
-/*$container['UserController'] = function($c) {
-    $view = $c->get("view");
-    
-    return new UserController($view);
-};*/

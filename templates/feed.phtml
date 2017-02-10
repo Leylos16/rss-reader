@@ -1,0 +1,27 @@
+<?php ob_start(); ?>
+<div id="content">Chargement...</div>
+<?php $content = ob_get_contents(); ob_clean(); ?>
+<?php include 'main.phtml'; ?>
+<script>
+    $.ajax({
+        method: "GET",
+        url: '<?php echo $this->getAttribute('utils')->getPathFor('apiGetFeedById', [ 'id' => $params['feedId'] ]) ?>'
+        })
+        .done(function(msg) {
+            $('#content').html('');
+            var content = "<table class='table table-striped'>";
+            $(msg).each(function(i, val) {
+                content += "<tr><td>";
+                content += "<h3><a href=" + val.link + ">" + val.title + "</a></h3>";
+                if (val.date) {
+                    content += val.date;
+                }
+                content += "<p>" + val.description + "</p>";
+                content += "</td></tr>";
+            });
+            $('#content').html(content + "</table>");
+        })
+        .fail(function(msg) {
+            $('#content').html('Une erreur est survenue.');
+        });
+</script>

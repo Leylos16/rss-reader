@@ -1,79 +1,114 @@
 <?php
+/**
+ * Controller which contains methods app
+ */
 class AppController
 {
+    /**
+     * @var \Slim\Container $container 
+     */
     protected $container;
 
+    /**
+     * Constructor controller slim
+     * 
+     * @param \Slim\Container $container
+     */
     public function __construct(\Slim\Container $container) {
         $this->container = $container;
     }
     
-    public function home($request, $response)
+    /**
+     * Get feeds group by category of a user
+     * 
+     * @return array
+     */
+    private function getFeedsGroupByCategory()
     {
         $router = $this->container->router;
         $params = [];
-        $params['messages'] = $this->container->flash->getMessages();
-        
-        $idUser = unserialize($_SESSION['sessionUser'])->id;
         
         try {
             $apiCaller = new ApiCaller(
                 $router,
                 $this->container->settings['apiToken'],
-                $idUser
+                unserialize($_SESSION['sessionUser'])->id
             );
-            $params['categories'] = $apiCaller->sendRequest('GET', 'apiCategories');
-            $params['feeds'] = $apiCaller->sendRequest('GET', 'apiFeeds');
-        } catch (Exception $ex) {
-            $newResponse = $response->withStatus(500);
-            $response = $newResponse;
+            $params['feeds'] = $apiCaller->sendRequest('GET', 'apiFeedsGroupByCategory');
+        } catch(Exception $ex) {
             $params['error'] = true;
         }
         
-        // Render index view
+        return $params;
+    }
+    
+    /**
+     * Page Home
+     * 
+     * @param $request Slim\Http\Request
+     * @param $response Slim\Http\Response
+     * 
+     * @return Slim\Http\Response
+     */
+    public function home($request, $response)
+    {
+        $params = $this->getFeedsGroupByCategory();
+        
+        if (isset($params['error'])) {
+            $newResponse = $response->withStatus(500);
+            $response = $newResponse;  
+        }
+        
         return $this->container->renderer->render(
-            $response, 'index.phtml', [ 'params' => $params ]
+            $response, 'app.phtml', [ 'params' => $params ]
         );
     }
     
-    public function addFeed($request, $response)
+    /**
+     * Page news of a feed
+     * 
+     * @param $request Slim\Http\Request
+     * @param $response Slim\Http\Response
+     * 
+     * @return Slim\Http\Response
+     */
+    public function getFeedById($request, $response)
     {
-        $paramsAddFeed = $request->getParams();
+        $params = $this->getFeedsGroupByCategory();
         
-        try {
-            $fileRss = new \SimpleXMLElement($paramsAddFeed['url'], null, true);
-            $paramsAddFeed['title'] = (string)$fileRss->channel->title;
-            $idUser = unserialize($_SESSION['sessionUser'])->id;
-            
-            $apiCaller = new ApiCaller(
-                $this->container->router,
-                $this->container->settings['apiToken'],
-                $idUser
-            );
-            
-            $apiCaller->sendRequest('POST', 'apiAddFeedByUser', $paramsAddFeed);
-            
-            $this->container->flash
-                ->addMessage('success', 'Flux enregistré.');
-            
-            return $response->withRedirect(
-                $this->container->router->pathFor('home')
-            );
-        } catch (Exception $ex) {
-            if ($fileRss) {
-                $newResponse = $response->withStatus(500);
-                $response = $newResponse;
-                $params['error'] = true;
-                
-                return $response->withRedirect(
-                    $this->container->router->pathFor('home')
-                );
-            } else {
-                $this->container->flash
-                ->addMessage('danger', 'Pas de flux trouvé pour cette URL. Veuillez rééssayez.');
-            }
+        if (isset($params['error'])) {
+            $newResponse = $response->withStatus(500);
+            $response = $newResponse;  
         }
+        
+        $params['feedId'] = $request->getAttribute('id');
+        
+        return $this->container->renderer->render(
+            $response, 'feed.phtml', [ 'params' => $params ]
+        );
     }
     
-    
+    /**
+     * Page news feeds by category
+     * 
+     * @param $request Slim\Http\Request
+     * @param $response Slim\Http\Response
+     * 
+     * @return Slim\Http\Response
+     */
+    public function getNewsByCategory($request, $response)
+    {
+        $params = $this->getFeedsGroupByCategory();
+        
+        if (isset($params['error'])) {
+            $newResponse = $response->withStatus(500);
+            $response = $newResponse;  
+        }
+        
+        $params['categoryId'] = $request->getAttribute('id');
+        
+        return $this->container->renderer->render(
+            $response, 'category.phtml', [ 'params' => $params ]
+        );
+    }
 }
-

@@ -23,6 +23,12 @@ require __DIR__ . '/../src/dependencies.php';
 // Register middleware
 require __DIR__ . '/../src/middleware.php';
 
+// Register ApiCaller
+require_once __DIR__ . '/../src/ApiCaller.php';
+
+//Register utils
+require_once __DIR__ . '/../src/utils.php';
+$app->getContainer()->renderer->setAttributes([ 'utils' => new Utils($app->getContainer()) ]);
 
 // Register routes
 $routeFiles = (array) glob(__DIR__ . '/../src/routes/*.php');

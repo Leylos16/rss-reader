@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <title>RSS Reader</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <style>
+            html {
+                position: relative;
+                min-height: 100%;
+            }
+            body {
+                padding-bottom: 60px;
+            }
+            #menu {
+                margin-bottom: 20px;
+            }
+            .list-group {
+                margin-bottom: 0;
+            }
+            .list-group-item {
+                border-radius: 0 !important;
+                border-left: 0;
+                border-right: 0;
+            }
+            footer {
+                height: 60px;
+                background-color: #f5f5f5;
+                padding-top: 20px;
+                position: absolute;
+                bottom: 0;
+                width: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="page-header">
+                <h1>RSS Reader</h1>
+            </div>
+            <?php if(isset($params['error'])) :  ?>
+            <div class="alert alert-danger">
+                Une erreur est survenue.
+            </div>
+            <?php else : ?>
+            <div id="menu">
+                <button class="btn btn-default" data-toggle="modal" data-target="#modal">Ajouter un flux RSS</button>
+                <a href="/logout" class="btn btn-primary pull-right">Déconnexion</a>
+            </div>
+            <div class="clearfix"></div>
+                <?php if (empty($params['feeds'])) : ?>
+                    <div class="alert alert-info">Vous n'avez pas encore de flux RSS enregistré.</div>
+                <?php else : ?>
+                    <div class="row">
+                    <div class="col-md-3">
+                        <div class="panel-group">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h4 class="panel-title">
+                                        <a href="<?php echo $this->getAttribute('utils')->getPathFor('home') ?>">
+                                          Dernières actualités
+                                        </a>
+                                    </h4>
+                                </div>
+                            </div>
+                            <?php foreach ($params['feeds'] as $category => $feeds) : ?>
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                  <h4 class="panel-title">
+                                    <a href="<?php echo $this->getAttribute('utils')->getPathFor('getNewsByCategory', [ 'id' => $category ]) ?>">
+                                        <?php echo $feeds['label'] ?>
+                                    </a>
+                                  </h4>
+                                </div>
+                                <div class="panel-collapse">
+                                    <ul class="list-group">
+                                    <?php foreach ($feeds['feeds'] as $feed) : ?>
+                                        <li class="list-group-item">
+                                            <a href="<?php echo $this->getAttribute('utils')->getPathFor('getFeedById', [ 'id' => $feed['id']]) ?>"><?php echo $feed['title'] ?></a><br>
+                                        </li>
+                                    <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <?php echo $content; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+            <?php endif; ?>
+        </div>
+        <div id="modal" class="modal fade" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">Ajouter un flux RSS</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div id="general-error" class="alert alert-danger hide">Une erreur est survenue.</div>
+                        <div class="form-group">
+                            <label for="url">Url</label>
+                            <input type="text" class="form-control" id="url">
+                            <span id="error-empty-url" class="text-danger hide">Veuillez renseignez une URL.</span>
+                            <span id="error-url" class="text-danger hide">Pas de flux RSS trouvé pour cet URL.</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="category_id">Catégorie</label>
+                            <div class="input-group">
+                                <select class="form-control" id="category_id">
+                                    <option value="0">Sans catégorie</option>
+                                </select>
+                                <input type='text' class="form-control hide" id='category_label'/>
+                                <span class="input-group-btn">
+                                    <button id='start-add-category' class="btn btn-default" type="button">+</button>
+                                    <button id='save-category' class="btn btn-default hide" type="button">Ok</button>
+                                </span>
+                            </div>
+                            <span id="error-empty-category" class="text-danger hide">Veuillez renseignez une catégorie.</span>         
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>
+                        <button type="button" id="saveFeed" class="btn btn-primary">Enregistrer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer>
+            <div class="container text-center">
+                &copy; Leyla Albayrak 2017
+            </div>
+        </footer>
+        <script src="https://code.jquery.com/jquery-1.11.3.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script>
+            setInterval(function(){
+                $.ajax({
+                method: "GET",
+                url: '<?php echo $this->getAttribute('utils')->getPathFor('apiGetOnlineFeedsByUser') ?>'
+                });
+            }, 10000);
+            $('#modal').on('shown.bs.modal', function (e) {
+                $('#url').focus();
+            });
+            $('#modal').on('show.bs.modal', function (e) {
+                $.ajax({
+                    method: "GET",
+                    url: '<?php echo $this->getAttribute('utils')->getPathFor('apiCategories') ?>'
+                    })
+                    .done(function(msg) {
+                        $(msg).each(function(i, val) {
+                            $('#category_id').append(
+                                $("<option></option>")
+                                .attr("value", val.id)
+                                .text(val.label)
+                            );
+                        });
+                    })
+                    .fail(function(msg) {
+                        $('#general-error').removeClass('hide');
+                    });
+            });
+            $('#start-add-category').click(function() {
+                $(this).addClass('hide');
+                $('#save-category').removeClass('hide');
+                $('#category_id').addClass('hide');
+                $('#category_label').removeClass('hide').focus();
+                $('#save-category').click(function() {
+                    var button = $(this);
+                    button.attr('disabled', true);
+                    $('#error-empty-category, #general-error').addClass('hide');
+                    
+                    $.ajax({
+                        method: "PUT",
+                        url: '<?php echo $this->getAttribute('utils')->getPathFor('apiAddCategoryByUser') ?>',
+                        data: { label: $('#category_label').val() }
+                    })
+                        .done(function( msg ) {
+                        button.attr('disabled', false);
+                        $('#category_label, #save-category').addClass('hide');
+                        $('#category_id, #start-add-category').removeClass('hide');
+                        if ($("#category_id option[value='" + msg + "']").length) {
+                            $('#category_id').val(msg);
+                        } else {
+                            $('#category_id').append(
+                            $("<option></option>")
+                                .attr("value", msg)
+                                .text($('#category_label').val())
+                            ).val(msg);
+                        }
+                        
+                        $('#category_label').val('');
+                    })
+                        .fail(function(msg) {
+                        if (msg.status === 400){
+                            $('#error-empty-category').removeClass('hide');
+                        } else {
+                            $('#general-error').removeClass('hide');
+                        }
+                        button.attr('disabled', false);
+                    })
+                });
+            });
+            $('#saveFeed').click(function(){
+                var button = $(this);
+                button.attr('disabled', true);
+                $('#error-url, #error-empty-url, #general-error').addClass('hide');
+                
+                $.ajax({
+                    method: "PUT",
+                    url: '<?php echo $this->getAttribute('utils')->getPathFor('apiAddFeedByUser') ?>',
+                    data: { url: $('#url').val(), category_id: $('#category_id').val() }
+                })
+                .done(function( msg ) {
+                    button.attr('disabled', false);
+                    document.location.href = msg;
+                })
+                .fail(function(msg) {
+                    if (msg.responseJSON === 'Error') {
+                        $('#error-url').removeClass('hide');
+                    } else if (msg.status === 400){
+                        $('#error-empty-url').removeClass('hide');
+                    } else {
+                        $('#general-error').removeClass('hide');
+                    }
+                    button.attr('disabled', false);
+                })
+            });
+        </script>
+    </body>
+</html>
